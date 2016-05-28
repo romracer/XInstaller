@@ -1,12 +1,24 @@
-apply plugin: 'android'
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.0.0'
+    }
+}
+
+Properties localprops = new Properties();
+localprops.load(new FileInputStream(file("local.properties")))
+
+apply plugin: 'com.android.application'
 
 dependencies {
-    compile fileTree(dir: 'libs', include: '*.jar')
+    provided fileTree(dir: 'libs', include: '*.jar')
 }
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "20.0.0"
+    buildToolsVersion "23.0.3"
 
     sourceSets {
         main {
@@ -30,5 +42,34 @@ android {
         // by a similar customization.
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
+    }
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 22
+        versionCode 500
+        versionName "5.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(localprops["key.store"])
+            storePassword localprops["store.pass"]
+            keyAlias localprops["key.alias"]
+            keyPassword localprops["key.pass"]
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), \
+            'proguard-project.txt'
+            signingConfig signingConfigs.release
+        }
+    }
+
+    lintOptions {
+        disable 'ExtraTranslation','MissingTranslation','ManifestResource'
     }
 }
