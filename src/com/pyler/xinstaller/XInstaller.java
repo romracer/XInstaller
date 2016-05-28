@@ -39,6 +39,7 @@ import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
+import de.robv.android.xposed.XposedHelpers.ClassNotFoundError;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class XInstaller implements IXposedHookZygoteInit,
@@ -1477,18 +1478,21 @@ public class XInstaller implements IXposedHookZygoteInit,
 		}
 
 		if (Common.GOOGLEPLAY_PKG.equals(lpparam.packageName)) {
-			if (!Common.KITKAT_NEWER) {
-				// 4.0 - 4.3
-				XposedHelpers.findAndHookMethod(
-						Common.PACKAGEMANAGERREPOSITORY, lpparam.classLoader,
-						"computeCertificateHashes", PackageInfo.class,
-						computeCertificateHashesHook);
-			}
+			try {
+				if (!Common.KITKAT_NEWER) {
+					// 4.0 - 4.3
+					XposedHelpers.findAndHookMethod(
+							Common.PACKAGEMANAGERREPOSITORY, lpparam.classLoader,
+							"computeCertificateHashes", PackageInfo.class,
+							computeCertificateHashesHook);
+				}
 
-			// 4.0 and newer
-			XposedHelpers.findAndHookMethod(Common.SELFUPDATESCHEDULER,
-					lpparam.classLoader, "checkForSelfUpdate", int.class,
-					String.class, autoUpdateGooglePlayHook);
+				// 4.0 and newer
+				XposedHelpers.findAndHookMethod(Common.SELFUPDATESCHEDULER,
+						lpparam.classLoader, "checkForSelfUpdate", int.class,
+						String.class, autoUpdateGooglePlayHook);
+			} catch (ClassNotFoundError e) {
+			}
 		}
 
 		if (Common.XINSTALLER_PKG.equals(lpparam.packageName)) {
